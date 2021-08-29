@@ -344,7 +344,11 @@ impl Log for SimpleLogger {
                 let mut file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
                 if file_ref.is_ok() {
                     let mut file = file_ref.unwrap();
-                    file.write_all(format!("{:<5} [{}] {}", level_string, target, record.args()).as_bytes());
+                    if let Err(e) = writeln!(file, format!("{:<5} [{}] {}", level_string, target, record.args()).as_str()) {
+                        eprintln!("Couldn't write to file: {}", e);
+                    }
+                
+                
                 }
                 
                 
