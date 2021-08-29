@@ -35,6 +35,10 @@ use colored::*;
 use log::{Level, LevelFilter, Log, Metadata, Record, SetLoggerError};
 use std::collections::HashMap;
 
+use std::io::Write;
+
+use std::fs;
+
 /// Implements [`Log`] and a set of simple builder methods for configuration.
 ///
 /// Use the various "builder" methods on this struct to configure the logger,
@@ -49,6 +53,9 @@ pub struct SimpleLogger {
     /// After initialization, the vector is sorted so that the first (prefix) match
     /// directly gives us the desired log level.
     module_levels: Vec<(String, LevelFilter)>,
+
+    output_file: bool,
+    output_file_path: String,
 
     /// Whether to include timestamps or not
     ///
@@ -79,6 +86,9 @@ impl SimpleLogger {
         SimpleLogger {
             default_level: LevelFilter::Trace,
             module_levels: Vec::new(),
+
+            output_file: false,
+            output_file_path: format!(""),
 
             #[cfg(feature = "chrono")]
             timestamps: true,
@@ -227,6 +237,12 @@ impl SimpleLogger {
         self
     }
 
+    pub fn output_file(mut self, output_file_path: String) -> SimpleLogger {
+        self.output_file = true;
+        self.output_file_path = output_file_path;
+        self
+    }
+
     /// 'Init' the actual logger, instantiate it and configure it,
     /// this method MUST be called in order for the logger to be effective.
     pub fn init(mut self) -> Result<(), SetLoggerError> {
@@ -323,6 +339,17 @@ impl Log for SimpleLogger {
                 );
                 return;
             }
+
+            if self.output_file == true {
+                let mut file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
+                if file_ref.is_ok() {
+                    let mut file = file_ref.unwrap();
+                    file.write_all(format!("{:<5} [{}] {}", level_string, target, record.args()).as_bytes());
+                }
+                
+                
+            }
+
 
             #[cfg(not(feature = "stderr"))]
             println!("{:<5} [{}] {}", level_string, target, record.args());
