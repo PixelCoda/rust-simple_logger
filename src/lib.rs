@@ -313,6 +313,22 @@ impl Log for SimpleLogger {
                 }
             };
 
+            if self.output_file {
+                let file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
+                if file_ref.is_ok() {
+                    let mut file = file_ref.unwrap();
+                    if let Err(e) = writeln!(file, "{:<5} [{}] {}", level_string, target, record.args()) {
+                        println!("Couldn't write to file: {}", e);
+                    }
+                
+                
+                } else {
+                    println!("file ref is bad");
+                }
+                
+                
+            }
+
             let target = if !record.target().is_empty() {
                 record.target()
             } else {
@@ -340,21 +356,7 @@ impl Log for SimpleLogger {
                 return;
             }
 
-            if self.output_file {
-                let file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
-                if file_ref.is_ok() {
-                    let mut file = file_ref.unwrap();
-                    if let Err(e) = writeln!(file, "{:<5} [{}] {}", level_string, target, record.args()) {
-                        println!("Couldn't write to file: {}", e);
-                    }
-                
-                
-                } else {
-                    println!("file ref is bad");
-                }
-                
-                
-            }
+
 
 
             #[cfg(not(feature = "stderr"))]
