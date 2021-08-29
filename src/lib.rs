@@ -237,7 +237,7 @@ impl SimpleLogger {
         self
     }
 
-    pub fn output_file(mut self, output_file_path: String) -> SimpleLogger {
+    pub fn with_output_file(mut self, output_file_path: String) -> SimpleLogger {
         self.output_file = true;
         self.output_file_path = output_file_path;
         self
@@ -341,14 +341,16 @@ impl Log for SimpleLogger {
             }
 
             if self.output_file == true {
-                let mut file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
+                let file_ref = fs::OpenOptions::new().write(true).append(true).open(self.output_file_path.as_str());
                 if file_ref.is_ok() {
                     let mut file = file_ref.unwrap();
                     if let Err(e) = writeln!(file, "{:<5} [{}] {}", level_string, target, record.args()) {
-                        eprintln!("Couldn't write to file: {}", e);
+                        println!("Couldn't write to file: {}", e);
                     }
                 
                 
+                } else {
+                    println!("file ref is bad");
                 }
                 
                 
